@@ -39,6 +39,43 @@ activities = {
         "max_participants": 30,
         "participants": ["john@mergington.edu", "olivia@mergington.edu"]
     }
+    ,
+        "Basketball Team": {
+            "description": "Join the school basketball team and compete in local leagues",
+            "schedule": "Mondays and Thursdays, 4:00 PM - 6:00 PM",
+            "max_participants": 15,
+            "participants": []
+        },
+        "Soccer Club": {
+            "description": "Practice soccer skills and play friendly matches",
+            "schedule": "Wednesdays, 3:30 PM - 5:30 PM",
+            "max_participants": 18,
+            "participants": []
+        },
+        "Art Club": {
+            "description": "Explore painting, drawing, and other visual arts",
+            "schedule": "Tuesdays, 3:30 PM - 5:00 PM",
+            "max_participants": 16,
+            "participants": []
+        },
+        "Drama Society": {
+            "description": "Participate in theater productions and acting workshops",
+            "schedule": "Fridays, 4:00 PM - 6:00 PM",
+            "max_participants": 20,
+            "participants": []
+        },
+        "Math Olympiad": {
+            "description": "Prepare for math competitions and solve challenging problems",
+            "schedule": "Thursdays, 3:30 PM - 5:00 PM",
+            "max_participants": 10,
+            "participants": []
+        },
+        "Science Club": {
+            "description": "Conduct experiments and explore scientific topics",
+            "schedule": "Wednesdays, 4:00 PM - 5:30 PM",
+            "max_participants": 14,
+            "participants": []
+        }
 }
 
 
@@ -52,8 +89,9 @@ def get_activities():
     return activities
 
 
+
 @app.post("/activities/{activity_name}/signup")
-def signup_for_activity(activity_name: str, email: str):
+def signup_participant(activity_name: str, email: str):
     """Sign up a student for an activity"""
     # Validate activity exists
     if activity_name not in activities:
@@ -62,6 +100,24 @@ def signup_for_activity(activity_name: str, email: str):
     # Get the specific activity
     activity = activities[activity_name]
 
+    # Validate student is not already signed up
+    if email in activity["participants"]:
+        raise HTTPException(status_code=400, detail="Student already signed up for this activity")
+
     # Add student
     activity["participants"].append(email)
     return {"message": f"Signed up {email} for {activity_name}"}
+
+
+# Unregister endpoint
+from fastapi import Query
+@app.delete("/activities/{activity_name}/unregister")
+def unregister_participant(activity_name: str, email: str = Query(...)):
+    """Remove a participant from an activity"""
+    if activity_name not in activities:
+        raise HTTPException(status_code=404, detail="Activity not found")
+    activity = activities[activity_name]
+    if email not in activity["participants"]:
+        raise HTTPException(status_code=404, detail="Participant not found in this activity")
+    activity["participants"].remove(email)
+    return {"message": f"Removed {email} from {activity_name}"}
